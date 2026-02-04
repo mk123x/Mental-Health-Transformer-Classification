@@ -9,9 +9,9 @@ The project is part of my BSc Data Science and Analytics Final Year Project and 
 ## Models Implemented
 The following transformer architectures are implemented and evaluated:
 
-- DistilBERT – used  due to its reduced size and faster training time, enabling efficient experimentation and hyperparameter tuning
-- RoBERTa – a larger general-purpose transformer for performance comparison
-- MentalBERT – a domain-specific transformer pretrained on mental health-related text
+- DistilBERT – A lightweight transformer used for efficient experimentation and faster training
+- RoBERTa – A larger general-purpose transformer for performance comparison
+- MentalBERT – A domain-specific transformer pretrained on mental health-related text
 
 All models are fine-tuned using the Hugging Face Transformers framework.
 
@@ -19,6 +19,13 @@ All models are fine-tuned using the Hugging Face Transformers framework.
 The dataset consists of Reddit posts labelled into multiple mental health-related classes. The data is used strictly for academic research purposes.
 
 ⚠️ Raw data is not included in this repository to ensure privacy and ethical compliance.
+
+The datasets used are publicly available:
+ - Mental health Reddit dataset:
+https://www.kaggle.com/datasets/entenam/reddit-mental-health-dataset
+
+ - Neutral Reddit dataset (r/WallStreetBets):
+https://www.kaggle.com/datasets/gpreda/reddit-wallstreetsbets-posts
 
 ## Methodology Summary
 - Text preprocessing and tokenisation using transformer tokenisers
@@ -32,10 +39,18 @@ Models are evaluated using:
 - Accuracy
 - Precision
 - Recall
-- F1-score
+- Macro averaged F1-score
 - Confusion matrices
 
 All models are evaluated on the same unseen test dataset to ensure a fair and valid comparison.
+
+## Tools & Technologies
+ - Python
+ - Hugging Face Transformers
+ - PyTorch
+ - scikit-learn
+ - Pandas and NumPy
+ - Google Colab
 
 ## Repository Contents
 - `mental_health_ transformer_classification.ipynb`  
