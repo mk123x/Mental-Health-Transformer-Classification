@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mental Health Text Classifier</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #fff0f5, #f7f7ff);
+    color: #2b2b2b;
+    transition: 0.3s;
+}
+
+/* DARK MODE */
+.dark {
+    background: #1e1e2f;
+    color: #f1f1f1;
+}
+
+.dark .card { background:#2a2a3d; }
+.dark textarea { background:#2a2a3d; color:white; }
+
+/* ANIMATIONS */
+@keyframes fadeSlide {
+    from {opacity:0; transform: translateY(20px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+@keyframes pulse {
+    0% {transform: scale(1);}
+    50% {transform: scale(1.03);}
+    100% {transform: scale(1);}
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px;
+}
+
+h1 { text-align: center; }
+
+.card {
+    background: white;
+    padding: 20px;
+    margin-top: 18px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    animation: fadeSlide 0.6s ease;
+}
+
+.disclaimer {
+    background: #ffd6e0;
+    border-left: 6px solid #ff4d7d;
+    font-weight: bold;
+    font-size: 18px;
+    animation: pulse 2s infinite;
+}
+
+textarea {
+    width: 100%;
+    height: 160px;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+textarea:focus {
+    outline:none;
+    border-color:#ff4d7d;
+    box-shadow:0 0 8px rgba(255,77,125,0.4);
+}
+
+button {
+    margin-top:10px;
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    background:#ffb6c1;
+    cursor:pointer;
+}
+
+button:hover { transform:scale(1.05); }
+
+.example {
+    background:#f9f9ff;
+    padding:10px;
+    margin-top:10px;
+    border-left:4px solid #ffb6c1;
+    cursor:pointer;
+}
+
+/* STACKED BAR */
+.barContainer {
+    display:flex;
+    height:25px;
+    border-radius:12px;
+    overflow:hidden;
+    margin-top:10px;
+}
+
+.segment {
+    height:100%;
+    color:white;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.red { background:#ff4d4d; }
+.amber { background:#ffb84d; }
+.green { background:#66cc66; }
+
+.warning { color:red; font-weight:bold; }
+
+.counter { font-size:12px; opacity:0.7; }
+
+.support {
+    background:#e6f0ff;
+    padding:15px;
+    border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🧠 Mental Health Text Classifier</h1>
+<button onclick="toggleDark()">🌙 Toggle Dark Mode</button>
+
+<!-- INTRO -->
+<div class="card intro">
+<p><strong>Welcome to my final-year project.</strong></p>
+<p>
+Mental health conditions such as anxiety and depression are increasingly important topics, particularly following the rise in cases observed since COVID-19. This work is inspired by the concept of digital phenotyping, where behavioural and linguistic data from digital interactions can provide insight into psychological wellbeing.
+</p>
+<p>
+This project explores how natural language processing can be used to detect patterns in text that may be associated with mental health signals. The goal is not diagnosis, but to demonstrate how language patterns can reflect emotional states.
+</p>
+</p>
+<p>
+Enter a piece of text (for example, a social media post), and the model will analyse the language and return a predicted category along with a confidence score.
+</p>
+</div>
+
+
+<div class="card">
+    <h2>🧠 About the Model</h2>
+    
+    <p>
+    This system uses a fine-tuned transformer-based language model trained on labelled mental health-related text data.
+    </p>
+    
+    <p>
+    The model processes input text through tokenisation, embedding layers, and contextual attention mechanisms to identify linguistic patterns associated with anxiety, depression, or neutral sentiment.
+    </p>
+    
+    <p>
+    It outputs a probability distribution across classes, and the final prediction is based on the highest probability score.
+    </p>
+    </div>
+
+
+<!-- DISCLAIMER -->
+<div class="card disclaimer">
+⚠️ IMPORTANT DISCLAIMER: This tool is for educational and research purposes only.
+It is NOT a medical or diagnostic system.
+</div>
+
+<!-- INPUT -->
+<div class="card">
+<textarea id="textInput" oninput="updateCounter()" placeholder="Write or paste a social media-style post..."></textarea>
+<div class="counter" id="counter">0 / 256</div>
+
+<button onclick="predict()" id="predictBtn">Analyse Text</button>
+<button onclick="clearText()">Clear</button>
+
+<div id="loadingSteps"></div>
+
+<h3>Some example text to try..</h3>
+
+<div class="example" onclick="fill('i feel like my heart wont stop racing and i cant calm down')">
+An example of a statement portraying anxiety
+</div>
+
+<div class="example" onclick="fill('i feel empty and like nothing really matters anymore')">
+An example of a statement portraying depression
+</div>
+
+<div class="example" onclick="fill('i went to the shop today with my friends')">
+An example of a neutral statement
+</div>
+
+</div>
+
+<!-- RESULT -->
+<div class="card" id="result" style="display:none;">
+
+<h2 id="prediction"></h2>
+<p id="confidenceText"></p>
+<p id="confidenceExplain"></p>
+<p id="warningText" class="warning"></p>
+
+<!-- STACKED BAR -->
+<div class="barContainer">
+<div id="barA" class="segment red"></div>
+<div id="barD" class="segment amber"></div>
+<div id="barN" class="segment green"></div>
+</div>
+
+<p id="interpretation"></p>
+
+<button onclick="exportReport()">Export Report</button>
+
+</div>
+
+<!-- HELP -->
+<div class="card" id="helpBox" style="display:none;">
+<h3 id="helpTitle"></h3>
+<p id="helpContent"></p>
+</div>
+
+<!-- SUPPORT ALWAYS -->
+<div class="card support">
+<h3>💙 Support Resources</h3>
+<ul>
+<li>NHS: https://www.nhs.uk/mental-health/</li>
+<li>Mind UK: https://www.mind.org.uk/</li>
+<li>Samaritans: https://www.samaritans.org/</li>
+</ul>
+</div>
+
+</div>
+
+<script>
+
+function toggleDark(){
+    document.body.classList.toggle("dark");
+}
+
+function fill(text){
+    textInput.value = text;
+    updateCounter();
+}
+
+function updateCounter(){
+    counter.innerText = textInput.value.length + " / 256";
+}
+
+function clearText(){
+    textInput.value="";
+    updateCounter();
+}
+
+function typeText(el, text){
+    el.textContent="";
+    let i=0;
+    function run(){
+        if(i<text.length){
+            el.textContent+=text[i++];
+            setTimeout(run,15);
+        }
+    }
+    run();
+}
+
+function showSteps(callback){
+    const steps=["Reading input text...","Tokenising text to model input...","Applying transformer attention...","Generating class probabilities...","Selecting final prediction..."];
+    let i=0;
+    loadingSteps.style.display="block";
+
+    function next(){
+        if(i<steps.length){
+            loadingSteps.innerText=steps[i++];
+            setTimeout(next,500);
+        } else callback();
+    }
+    next();
+}
+
+function exportReport(){
+    let text = `
+MENTAL HEALTH CLASSIFIER REPORT
+
+${prediction.innerText}
+${confidenceText.innerText}
+
+Note:
+This tool is designed for educational and research purposes only and is not a medical or diagnostic system.
+Predictions are generated based on statistical patterns in text and may not accurately reflect an individual’s mental health.
+Outputs should be interpreted with caution, particularly for short or ambiguous inputs, as the model may produce uncertain or incorrect predictions.
+If this result reflects how you have been feeling, consider speaking to someone you trust or seeking professional support.
+
+Model:
+This prediction was generated using a transformer-based natural language processing model (MentalBERT), which has been fine-tuned on social media text data to classify posts into three categories: anxiety, depression, and neutral.
+
+How the Model works:
+The model processes text by converting it into numerical representations (tokens) and analysing contextual relationships between words using a self-attention mechanism.
+It evaluates the overall meaning and structure of the input to assign probabilities to each class.
+The final prediction is based on the class with the highest probability score.
+
+Confidence Explanation:
+The confidence score represents the model’s estimated probability for the predicted class.
+Lower confidence values (below 90%) may indicate uncertainty or overlapping patterns between categories, and results in such cases should be interpreted carefully.
+
+I would like to highlight some limitations of the model. It relies on patterns in the training data and may not fully understand context or intent at times. The model does not account for personal history or clinical contexts. Any short or vague inputs will likely lead to inaccurate predictions so remain cautious, and it may be helpful to talk to someone you trust if you do have feelings of distress.
+`;
+
+    let blob = new Blob([text], {type:"text/plain"});
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "report.txt";
+    a.click();
+}
+
+function predict(){
+
+    if(!textInput.value.trim()){
+        alert("Enter text");
+        return;
+    }
+
+    predictBtn.disabled=true;
+
+    showSteps(()=>{
+
+        fetch("/predict",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({text:textInput.value})
+        })
+        .then(r=>r.json())
+        .then(data=>{
+
+            predictBtn.disabled=false;
+            loadingSteps.style.display="none";
+
+            let conf=data.confidence;
+            let pred=data.prediction;
+            let probs=data.probabilities;
+
+            result.style.display="block";
+            result.scrollIntoView({behavior:"smooth"});
+
+            let emoji = pred==="anxiety"?"😰":pred==="depression"?"😔":"🙂";
+
+            typeText(prediction, `${emoji} Prediction: ${pred}`);
+            typeText(confidenceText, `Confidence: ${(conf*100).toFixed(2)}%`);
+
+            if(conf>0.98){
+                confidenceExplain.innerText="This is a high confidence prediction. The confidence score represents the model’s estimated probability for the predicted class.";
+            } else if(conf>0.84){
+                confidenceExplain.innerText="This is a moderate confidence prediction. The confidence score represents the model’s estimated probability for the predicted class.";
+            } else {
+                confidenceExplain.innerText="This is a low confidence prediction. The confidence score represents the model’s estimated probability for the predicted class.";
+            }
+
+            if(conf<0.96){
+                warningText.innerText="⚠️ Please interpret with caution.";
+            } else warningText.innerText="";
+
+            barA.style.width=(probs[0]*100)+"%";
+            barA.innerText=Math.round(probs[0]*100)+"%";
+
+            barD.style.width=(probs[1]*100)+"%";
+            barD.innerText=Math.round(probs[1]*100)+"%";
+
+            barN.style.width=(probs[2]*100)+"%";
+            barN.innerText=Math.round(probs[2]*100)+"%";
+
+            // INTERPRETATION
+            if(pred==="anxiety"){
+                interpretation.innerText="Detected patterns of ongoing worry or restlessness. Click below to download a report further explaining how this classifier arrived at this prediction.";
+                helpTitle.innerText="Understanding Anxiety 😰";
+                helpContent.innerText="Symptoms: racing thoughts, tension. Try breathing in for 4 seconds, then out for 7 and talk to someone.";
+            }
+            else if(pred==="depression"){
+                interpretation.innerText="Detected patterns of low mood or emotional distress. Click below to download a report further explaining how this classifier arrived at this prediction.";
+                helpTitle.innerText="Understanding Depression 😔";
+                helpContent.innerText="Common experiences can include feeling overwhelmed, constant worrying, restlessness, or difficulty relaxing. If this feels familiar, it may help to talk to someone you trust or seek support by contacting a professional or local support service";
+            }
+            else{
+                interpretation.innerText="No strong distress signals detected.";
+                helpTitle.innerText="General Wellbeing 🙂";
+                helpContent.innerText="Maintaining healthy habits such as staying connected with others, getting enough rest, and taking breaks can support your wellbeing. If you have concerns about how you’re feeling, speaking to someone can still be helpful.";
+            }
+
+            helpBox.style.display="block";
+
+        });
+
+    });
+}
+</script>
+
+</body>
+</html>
